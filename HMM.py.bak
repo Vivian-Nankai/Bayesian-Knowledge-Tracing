@@ -4,7 +4,6 @@ import numpy
 from numpy import random as rand
 from sklearn.cross_validation import KFold
 from sklearn.metrics import mean_squared_error
-from functools import reduce
 
 
 class hmm:
@@ -28,7 +27,7 @@ class hmm:
         self.V = obs_symbols
         # Number of observation symbols for each type
         # For example, [2, 5]
-        self.M = list(map(len, obs_symbols))
+        self.M = map(len, obs_symbols)
 
         # Number of observation types
         self.n_elements = len(self.V)
@@ -36,7 +35,7 @@ class hmm:
         self.symbol_map = []
         # Number of observation types
         for i in range(self.n_elements):
-            self.symbol_map.append(dict(list(zip(self.V[i], list(range(len(self.V[i])))))))
+            self.symbol_map.append(dict(zip(self.V[i], range(len(self.V[i])))))
 
         # Initialize transmission probability matrix
         if 'T' in args:
@@ -105,7 +104,7 @@ class hmm:
                   + "\n5) The emission probability matrix E:\n" + str(self.E) \
                   + "\n6) The initial state probability Pi: \n" + str(self.Pi) + "\n"
 
-        print(results)
+        print results
 
     def obs_index(self, Obs, Obs_type):
         """
@@ -136,7 +135,7 @@ class hmm:
         :return:
         """
         if debug:
-            print("\n" * 2 + "*" * 23 + "\n" + "*" * 2 + " FORWARD ALGORITHM " + "*" * 2 + "\n" + "*" * 23 + "\n")
+            print "\n" * 2 + "*" * 23 + "\n" + "*" * 2 + " FORWARD ALGORITHM " + "*" * 2 + "\n" + "*" * 23 + "\n"
 
         observation = []
         # The observation sequence using observation symbol notations. It is a list ["1","1","0","1"]
@@ -160,11 +159,11 @@ class hmm:
             Alpha[:, 0] = Alpha[:, 0] * c[0]
 
         if debug:
-            print("t=0")
-            print(Alpha[:, 0])
+            print "t=0"
+            print Alpha[:, 0]
 
         # Induction
-        for t in range(1, T):
+        for t in xrange(1, T):
             Alpha[:, t] = numpy.dot(Alpha[:, t - 1], self.T)
             for i in range(self.n_elements):
                 Alpha[:, t] *= self.E[i][:, int(observation[i][t])]
@@ -174,19 +173,19 @@ class hmm:
                 Alpha[:, t] = Alpha[:, t] * c[t]
 
             if debug:
-                print("t=" + str(t))
-                print(Alpha[:, t])
+                print "t=" + str(t)
+                print Alpha[:, t]
 
         # Termination
         if scaling:
             log_prob = - reduce((lambda x, y: x + y), numpy.log(c[:T]))
 
             if debug:
-                print("\nAlpha:")
-                print(Alpha)
-                print("\nc:")
-                print(c)
-                print("\nP(Obs|hmm)=" + str(log_prob))
+                print "\nAlpha:"
+                print Alpha
+                print "\nc:"
+                print c
+                print "\nP(Obs|hmm)=" + str(log_prob)
                 # print "c[T-1]: " + str(c[T-1])
             return (log_prob, Alpha, c)
 
@@ -195,11 +194,11 @@ class hmm:
             log_prob = numpy.log(numpy.sum(Alpha[:, T - 1]))
 
             if debug:
-                print("\nAlpha:")
-                print(Alpha)
+                print "\nAlpha:"
+                print Alpha
                 c = 1.0 / Alpha.sum(0)
-                print(c)
-                print("\nP(Obs|hmm)=" + str(log_prob))
+                print c
+                print "\nP(Obs|hmm)=" + str(log_prob)
 
             return (log_prob, Alpha)
 
@@ -213,7 +212,7 @@ class hmm:
         :return: Beta
         """
         if debug:
-            print("\n" * 2 + "*" * 24 + "\n" + "*" * 2 + " BACKWARD ALGORITHM " + "*" * 2 + "\n" + "*" * 24 + "\n")
+            print "\n" * 2 + "*" * 24 + "\n" + "*" * 2 + " BACKWARD ALGORITHM " + "*" * 2 + "\n" + "*" * 24 + "\n"
 
         observation = []
         # The observation sequence using observation symbol notations. It is a list ["1","1","0","1"]
@@ -231,12 +230,12 @@ class hmm:
             c[T - 1] = 1 / Beta[:, T - 1].sum()
             Beta[:, T - 1] = Beta[:, T - 1] * c[T - 1]
         if debug:
-            print("t=" + str(T - 1))
-            print(Beta[:, T - 1])
+            print "t=" + str(T - 1)
+            print Beta[:, T - 1]
 
         # Induction
 
-        for t in reversed(range(T - 1)):
+        for t in reversed(xrange(T - 1)):
             temp = self.T.copy()
             for i in range(self.n_elements):
                 temp *= self.E[i][:, int(observation[i][t + 1])]
@@ -247,8 +246,8 @@ class hmm:
                 Beta[:, t] = Beta[:, t] * c[t]
 
             if debug:
-                print("t=" + str(t))
-                print(Beta[:, t])
+                print "t=" + str(t)
+                print Beta[:, t]
 
         # if 'c' in args:
         #    Beta = Beta * args['c']
@@ -256,14 +255,14 @@ class hmm:
         if scaling:
 
             if debug:
-                print("\nBeta:")
-                print(Beta)
+                print "\nBeta:"
+                print Beta
 
             return Beta
         else:
             if debug:
-                print("\nBeta:")
-                print(Beta)
+                print "\nBeta:"
+                print Beta
             return Beta
 
     def baum_welch(self, Obs_seq, **args):
@@ -295,8 +294,8 @@ class hmm:
 
         LLS = []
 
-        for epoch in range(epochs):
-            print("Epoch " + str(epoch))
+        for epoch in xrange(epochs):
+            print "Epoch " + str(epoch)
 
             # Expected number of probability of starting from Si
             exp_si_t0 = numpy.zeros([self.N], float)
@@ -308,14 +307,14 @@ class hmm:
             exp_num_Si_Sj = numpy.zeros([self.N * self.N], float).reshape(self.N, self.N)
             # Expected number of in Si observing symbol Vk
             exp_num_in_Si_Vk = []
-            for i in range(self.n_elements):
+            for i in xrange(self.n_elements):
                 exp_num_in_Si_Vk.append(numpy.zeros([self.N, self.M[i]], float))
 
             LogLikelihood = 0
 
             for Obs in Obs_seq:
                 if debug:
-                    print("\nThe observation sequence is " + str(Obs))
+                    print "\nThe observation sequence is " + str(Obs)
                 # log_prob1, Alpha1, c1 = self.forward(Obs, scaling=True, debug=False)
 
                 log_prob, Alpha, c = self.forward(Obs, scaling=True, debug=False)
@@ -325,11 +324,11 @@ class hmm:
                 Beta = self.backward(Obs, scaling=True, debug=False)
 
                 if debug:
-                    print("\nAlpha:")
-                    print(Alpha)
-                    print("\nBeta:")
-                    print(Beta)
-                    print(len(Beta[0]))
+                    print "\nAlpha:"
+                    print Alpha
+                    print "\nBeta:"
+                    print Beta
+                    print len(Beta[0])
 
                 T = len(Obs)
 
@@ -346,8 +345,8 @@ class hmm:
                 raw_Gamma = Alpha * Beta
                 Gamma = raw_Gamma / raw_Gamma.sum(0)
                 if debug:
-                    print("\nGamma")
-                    print(Gamma)
+                    print "\nGamma"
+                    print Gamma
 
                 exp_si_t0 += Gamma[:, 0]
                 exp_num_from_Si += Gamma[:, :T - 1].sum(1)
@@ -357,71 +356,71 @@ class hmm:
                 for i in range(self.n_elements):
 
                     temp = numpy.zeros([self.N, self.M[i]], float)
-                    for each in self.symbol_map[i].keys():
+                    for each in self.symbol_map[i].iterkeys():
                         which = numpy.array([self.symbol_map[i][each] == int(x) for x in observation[i]])
                         temp[:, self.symbol_map[i][each]] = Gamma.T[which, :].sum(0)
 
                     exp_num_in_Si_Vk[i] += temp
 
                 if debug:
-                    print("\nExpected frequency in state S_i at time 0:\n" + str(exp_si_t0))
-                    print("Expected number of transition from state S_i:\n" + str(exp_num_from_Si))
-                    print("Expected number of time in state S_i:\n" + str(exp_num_in_Si))
-                    print("Expected number of time in state S_i observing V_k:\n" + str(exp_num_in_Si_Vk))
+                    print "\nExpected frequency in state S_i at time 0:\n" + str(exp_si_t0)
+                    print "Expected number of transition from state S_i:\n" + str(exp_num_from_Si)
+                    print "Expected number of time in state S_i:\n" + str(exp_num_in_Si)
+                    print "Expected number of time in state S_i observing V_k:\n" + str(exp_num_in_Si_Vk)
 
                 # Xi is defined as given the model and sequence, the probability of being in state Si at time t,
                 # and in state Sj at time t+1
 
                 Xi = numpy.zeros([T - 1, self.N, self.N], float)
 
-                for t in range(T - 1):
-                    for i in range(self.N):
+                for t in xrange(T - 1):
+                    for i in xrange(self.N):
                         Xi[t, i, :] = Alpha[i, t] * self.T[i, :]
-                        for j in range(self.n_elements):
+                        for j in xrange(self.n_elements):
                             Xi[t, i, :] *= self.E[j][:, int(observation[j][t + 1])]
                         Xi[t, i, :] *= Beta[:, t + 1]
                     Xi[t, :, :] /= Xi[t, :, :].sum()
 
-                for t in range(T - 2):
+                for t in xrange(T - 2):
                     exp_num_Si_Sj += Xi[t, :, :]
 
                 if debug:
-                    print("\nExpected number of transitions from state Si to state Sj: \n" + str(exp_num_Si_Sj))
+                    print "\nExpected number of transitions from state Si to state Sj: \n" + str(exp_num_Si_Sj)
 
             # reestimate initial state probabilities
             if updatePi:
                 self.Pi = exp_si_t0 / exp_si_t0.sum()
                 if debug:
-                    print("\nUpdated Pi:")
-                    print(exp_si_t0)
+                    print "\nUpdated Pi:"
+                    print exp_si_t0
 
             if updateT:
                 T_hat = numpy.zeros([self.N, self.N], float).reshape(self.N, self.N)
-                for i in range(self.N):
+                for i in xrange(self.N):
                     T_hat[i, :] = exp_num_Si_Sj[i, :] / exp_num_from_Si[i]
                     T_hat[i, :] /= T_hat[i, :].sum()
                 self.T = T_hat
 
                 if debug:
-                    print("\nUpdated T")
-                    print(self.T)
+                    print "\nUpdated T"
+                    print self.T
 
             if updateE:
-                for j in range(self.n_elements):
+                for j in xrange(self.n_elements):
                     E_hat = numpy.zeros([self.N, self.M[j]], float).reshape(self.N, self.M[j])
-                    for i in range(self.N):
+                    for i in xrange(self.N):
                         E_hat[i, :] = exp_num_in_Si_Vk[j][i, :] / exp_num_in_Si[i]
                         E_hat[i, :] /= E_hat[i, :].sum()
                     self.E[j] = E_hat
                     if debug:
-                        print("\nUpdated E")
-                        print(self.E)
-            print(LogLikelihood)
+                        print "\nUpdated E"
+                        print self.E
+            print LogLikelihood
             LLS.append(LogLikelihood)
             if epoch > 1:
                 if abs(LLS[epoch] - LLS[epoch - 1]) < epsilon:
-                    print("The loglikelihood improvement falls below threshold, training terminates at epoch " + str(
-                        epoch) + "! ")
+                    print "The loglikelihood improvement falls below threshold, training terminates at epoch " + str(
+                        epoch) + "! "
                     break
 
         self._print_HMM("After training")
@@ -431,7 +430,7 @@ class hmm:
         nlg_scores = []
         for Obs in Obs_seq:
             if debug:
-                print("\nThe observation sequence is " + str(Obs))
+                print "\nThe observation sequence is " + str(Obs)
             if Obs:
                 log_prob, Alpha, c = self.forward(Obs, scaling=True, debug=False)
                 # print "Posttest score:"
