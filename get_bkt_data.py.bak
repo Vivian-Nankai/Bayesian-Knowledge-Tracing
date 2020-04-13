@@ -18,11 +18,11 @@ if __name__ == '__main__':
 
     sql3 = "select distinct sid from pyreness;"
     student = pd.read_sql(sql3, conn)
-    print("number of students: ", len(student))
+    print "number of students: ", len(student)
 
-    for i in range(10):        # for 10 KCs
+    for i in xrange(10):        # for 10 KCs
 
-        print(" <<<<<<<<< kc " + str(i))
+        print " <<<<<<<<< kc " + str(i)
         col = 'kc'+str(i)
         tmp_col = []
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
             y2.append(POST[key[0]])
 
         student[col] = tmp_col
-        print(len(bkt_perftime), len(y1), num)
+        print len(bkt_perftime), len(y1), num
         np.save("bkt/new_bkt_pertime_kc" + str(i), np.array(bkt_perftime))
         np.save("bkt/new_bkt_tutor_kc" + str(i), np.array(bkt_tutor))
 
@@ -59,4 +59,4 @@ if __name__ == '__main__':
 
     student['QLG'] = y1
     student['POST'] = y2
-    print("End")
+    print "End"
